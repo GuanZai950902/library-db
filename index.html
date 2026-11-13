@@ -1,0 +1,242 @@
+<!doctype html>
+<html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>圖書館資料庫查詢練習｜MySQL 8.0</title>
+<style>
+:root{--navy:#142d4e;--blue:#2865a5;--pale:#eef5fc;--bg:#f4f7fb;--ink:#202d3d;--muted:#65758a;--line:#dce4ee;--green:#16794b;--red:#b42318}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.65 system-ui,"Noto Sans TC",sans-serif}header{background:var(--navy);color:#fff;padding:22px max(18px,calc((100% - 1180px)/2));display:flex;justify-content:space-between;align-items:center;gap:18px;flex-wrap:wrap}.brand{font-weight:800;font-size:20px}.brand small{display:block;font-size:11px;letter-spacing:.12em;opacity:.7;font-weight:500}nav{display:flex;gap:6px;flex-wrap:wrap}nav button{background:transparent;color:#eaf2fc;border:1px solid #ffffff35;padding:8px 12px;border-radius:8px;cursor:pointer}nav button.active,nav button:hover{background:#fff;color:var(--navy)}main{max-width:1180px;margin:24px auto;padding:0 16px 60px}.hero{background:linear-gradient(120deg,#e7f0fb,#fff);border:1px solid var(--line);padding:25px;border-radius:16px;margin-bottom:18px}.eyebrow{color:var(--blue);font-weight:750;font-size:12px;letter-spacing:.12em}h1{font-size:clamp(25px,4vw,36px);margin:5px 0}h2{font-size:22px;margin:0 0 12px}h3{font-size:16px;margin:16px 0 8px}.muted{color:var(--muted)}.panel{background:#fff;border:1px solid var(--line);border-radius:14px;padding:20px;margin:15px 0;box-shadow:0 5px 18px #1e293b08}.hidden{display:none!important}.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:10px;margin-top:15px}.stat{background:#fff;border:1px solid var(--line);border-radius:10px;padding:12px}.stat b{display:block;font-size:23px;color:var(--blue)}.row{display:flex;gap:10px;flex-wrap:wrap;align-items:end}.field{display:flex;flex-direction:column;gap:4px;flex:1;min-width:150px}input,select,textarea{font:inherit;border:1px solid #cbd5e1;border-radius:8px;padding:10px;background:#fff;color:var(--ink);width:100%}textarea{font:13px/1.6 ui-monospace,Consolas,monospace;min-height:180px;resize:vertical}button.primary{background:var(--blue);color:#fff;border:0;border-radius:8px;padding:10px 16px;cursor:pointer;font-weight:700}button.soft{background:var(--pale);color:var(--navy);border:1px solid #d7e5f5;border-radius:8px;padding:9px 12px;cursor:pointer}button:disabled{opacity:.45;cursor:not-allowed}.tabs{display:flex;gap:7px;flex-wrap:wrap;margin:12px 0}.tabs button{border:1px solid var(--line);background:#fff;padding:8px 12px;border-radius:20px;cursor:pointer}.tabs button.active{background:var(--navy);color:#fff}.bookgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(245px,1fr));gap:12px;margin-top:15px}.book{border:1px solid var(--line);border-radius:12px;padding:14px;background:#fff}.book h3{margin:0 0 5px}.tag{display:inline-block;border-radius:20px;padding:2px 9px;font-size:12px;background:#e9f7ef;color:var(--green)}.tag.no{background:#fff0ef;color:var(--red)}table{border-collapse:collapse;width:100%;font-size:14px;margin-top:9px}th,td{padding:9px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}th{background:#f3f6fa;white-space:nowrap}.scroll{overflow:auto}.note{background:#f0f6fd;border-left:4px solid var(--blue);padding:10px 13px;border-radius:5px}.sqlbox{background:#101d2d;color:#dbeafe;padding:14px;border-radius:10px;margin:10px 0;white-space:pre-wrap;font:13px/1.6 ui-monospace,Consolas,monospace}.resultmsg{padding:10px;border-radius:8px;background:#f1f5f9;color:var(--muted);margin:10px 0}.resultmsg.ok{background:#eaf8f0;color:var(--green)}.resultmsg.err{background:#fff0ef;color:var(--red)}.erd{display:flex;gap:10px;flex-wrap:wrap;align-items:center}.entity{border:1px solid #a8bfdc;background:#f8fbff;border-radius:10px;padding:12px;min-width:150px}.entity b{display:block;color:var(--blue)}.entity small{display:block;color:var(--muted)}.qitem{padding:13px;border:1px solid var(--line);border-radius:10px;margin:9px 0}.qitem h3{margin:0}.footer{text-align:center;color:var(--muted);font-size:12px;margin-top:30px}@media(max-width:600px){.panel{padding:15px}header{padding:17px}.row{align-items:stretch}}
+.cmpgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}@media(max-width:800px){.cmpgrid{grid-template-columns:1fr}}</style></head><body>
+<header><div class="brand"><small>LIBRARY DATABASE LAB</small>圖書館資料庫查詢練習 <span style='font-size:12px;background:#e6f1ff;color:#174b80;padding:3px 8px;border-radius:12px'>MySQL 8.0</span></div><nav><button class="active" data-page="home">案例首頁</button><button data-page="catalog">圖書館搜尋</button><button data-page="loans">借閱管理</button><button data-page="schema">資料庫結構</button><button data-page="practice">SQL 練習</button></nav></header>
+<main>
+<section id="home" class="page">
+<div class="hero"><div class="eyebrow">DATABASE QUERY PRACTICE · CASE STUDY</div><h1>圖書館書籍查詢系統</h1><p>以圖書館日常作業為情境，練習資料表關聯、條件搜尋、彙總統計與借閱紀錄查詢。</p><div class="stats"><div class="stat"><b id="bookCount">22</b>種書目</div><div class="stat"><b id="authorCount">12</b>位作者</div><div class="stat"><b id="categoryCount">10</b>種分類</div><div class="stat"><b id="loanCount">15</b>筆借閱紀錄</div></div></div>
+<div class="panel"><h2>一、案例背景</h2><p>圖書館需要管理書目、作者、分類、館藏冊數與借閱紀錄。讀者希望能依書名、作者、出版社、分類或館藏狀態快速找到書；館員則需要查詢目前可借冊數、尚未歸還紀錄與熱門書籍。</p><h3>系統使用者需求</h3><ul><li><b>讀者：</b>依關鍵字與篩選條件尋找書籍，查看書籍資訊及可借冊數。</li><li><b>館員：</b>查詢書目資料、作者、分類、借閱人與歸還狀態。</li><li><b>管理者：</b>統計分類書目數、借閱次數與熱門書籍。</li></ul><div class="note">本案例內建 22 筆虛構書目、10 種分類及 2015–2025 年出版年份，作為資料庫課程練習，不代表任何真實圖書館館藏。SQL 題目以 MySQL 8.0 語法撰寫。此單檔版的瀏覽器預覽使用 SQLite/WASM 執行 MySQL 與 SQLite 共通的查詢子集，並非連線到真正的 MySQL Server；MySQL 專屬語法及完整伺服器功能需在 MySQL 8.0 環境驗證。</div></div>
+<div class="panel"><h2>二、使用方式</h2><ol><li>到「圖書館搜尋」以一般讀者角度查找書籍。</li><li>到「資料庫結構」查看 ERD、欄位定義及範例資料。</li><li>到「SQL 練習」搜尋題目、載入 SQL、執行並對照預期結果。</li></ol></div>
+</section>
+<section id="catalog" class="page hidden">
+<div class="panel"><h2>圖書館書籍搜尋</h2><p class="muted">關鍵字會同時比對書名、作者與出版社；其他篩選條件會與關鍵字以 AND 組合。</p>
+<div class="row"><div class="field" style="flex:2"><label>關鍵字（書名／作者／出版社）</label><input id="keyword" placeholder="例如：Java、林怡君、旗標" oninput="searchBooks()"></div><div class="field"><label>分類</label><select id="catFilter" onchange="searchBooks()"><option value="">全部分類</option></select></div><div class="field"><label>出版年份</label><select id="yearFilter" onchange="searchBooks()"><option value="">全部年份</option></select></div><div class="field"><label>館藏狀態</label><select id="statusFilter" onchange="searchBooks()"><option value="">全部狀態</option><option value="available">可借閱</option><option value="unavailable">全部借出</option></select></div></div>
+<div class="row" style="margin-top:10px"><div class="field"><label>排序方式</label><select id="sortFilter" onchange="searchBooks()"><option value="title">書名 A–Z</option><option value="yearDesc">出版年份：新到舊</option><option value="yearAsc">出版年份：舊到新</option><option value="popular">借閱次數：高到低</option></select></div><button class="soft" onclick="clearFilters()">清除條件</button></div>
+<div id="searchSummary" class="resultmsg"></div><div id="bookResults" class="bookgrid"></div></div>
+</section>
+<section id="loans" class="page hidden"><div class="panel"><h2>借閱管理（館員）</h2><p class="muted">辦理借書、還書並查詢借閱紀錄；操作會直接寫入資料庫，書籍搜尋、首頁統計與 SQL 練習即時同步。</p><div class="row"><div class="field"><label>借閱人</label><input id="lnName" placeholder="例如：王同學"></div><div class="field" style="flex:2"><label>書目</label><select id="lnBook"></select></div><button class="primary" onclick="borrowBook()">借出</button></div><div class="tabs" id="lnTabs"><button class="active" data-f="all">全部</button><button data-f="open">未歸還</button><button data-f="done">已歸還</button></div><div id="lnMsg" class="resultmsg">請選擇書目並輸入借閱人。</div><div id="lnTable" class="scroll"></div></div></section>
+<section id="schema" class="page hidden">
+<div class="panel"><h2>資料庫 ERD 與關聯</h2><p class="muted">BOOK 與 AUTHOR 為多對多關係，透過 BOOK_AUTHOR 連接；CATEGORY 對 BOOK 為一對多；BOOK 對 LOAN 為一對多。</p><svg viewBox="0 0 900 330" style="width:100%;max-width:900px;font-family:inherit" role="img" aria-label="ERD"><defs><marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0 0L10 5L0 10z" fill="#2865a5"/></marker></defs><rect x="20" y="10" width="220" height="70" rx="8" fill="#f8fbff" stroke="#a8bfdc"/><rect x="20" y="10" width="220" height="26" rx="8" fill="#2865a5"/><text x="30" y="28" fill="#fff" font-weight="700" font-size="14">CATEGORY</text><text x="30" y="52" font-size="13" fill="#202d3d">category_id</text><text x="230" y="52" font-size="12" text-anchor="end" fill="#b42318" font-weight="700">PK</text><text x="30" y="74" font-size="13" fill="#202d3d">category_name</text><text x="230" y="74" font-size="12" text-anchor="end" fill="#b42318" font-weight="700"></text><rect x="340" y="10" width="220" height="158" rx="8" fill="#f8fbff" stroke="#a8bfdc"/><rect x="340" y="10" width="220" height="26" rx="8" fill="#2865a5"/><text x="350" y="28" fill="#fff" font-weight="700" font-size="14">BOOK</text><text x="350" y="52" font-size="13" fill="#202d3d">book_id</text><text x="550" y="52" font-size="12" text-anchor="end" fill="#b42318" font-weight="700">PK</text><text x="350" y="74" font-size="13" fill="#202d3d">category_id</text><text x="550" y="74" font-size="12" text-anchor="end" fill="#b42318" font-weight="700">FK</text><text x="350" y="96" font-size="13" fill="#202d3d">title</text><text x="550" y="96" font-size="12" text-anchor="end" fill="#b42318" font-weight="700"></text><text x="350" y="118" font-size="13" fill="#202d3d">publish_year</text><text x="550" y="118" font-size="12" text-anchor="end" fill="#b42318" font-weight="700"></text><text x="350" y="140" font-size="13" fill="#202d3d">publisher</text><text x="550" y="140" font-size="12" text-anchor="end" fill="#b42318" font-weight="700"></text><text x="350" y="162" font-size="13" fill="#202d3d">total_copies</text><text x="550" y="162" font-size="12" text-anchor="end" fill="#b42318" font-weight="700"></text><rect x="660" y="10" width="220" height="136" rx="8" fill="#f8fbff" stroke="#a8bfdc"/><rect x="660" y="10" width="220" height="26" rx="8" fill="#2865a5"/><text x="670" y="28" fill="#fff" font-weight="700" font-size="14">LOAN</text><text x="670" y="52" font-size="13" fill="#202d3d">loan_id</text><text x="870" y="52" font-size="12" text-anchor="end" fill="#b42318" font-weight="700">PK</text><text x="670" y="74" font-size="13" fill="#202d3d">book_id</text><text x="870" y="74" font-size="12" text-anchor="end" fill="#b42318" font-weight="700">FK</text><text x="670" y="96" font-size="13" fill="#202d3d">borrower</text><text x="870" y="96" font-size="12" text-anchor="end" fill="#b42318" font-weight="700"></text><text x="670" y="118" font-size="13" fill="#202d3d">borrow_date</text><text x="870" y="118" font-size="12" text-anchor="end" fill="#b42318" font-weight="700"></text><text x="670" y="140" font-size="13" fill="#202d3d">return_date</text><text x="870" y="140" font-size="12" text-anchor="end" fill="#b42318" font-weight="700">NULL=未歸還</text><rect x="340" y="230" width="220" height="70" rx="8" fill="#f8fbff" stroke="#a8bfdc"/><rect x="340" y="230" width="220" height="26" rx="8" fill="#2865a5"/><text x="350" y="248" fill="#fff" font-weight="700" font-size="14">BOOK_AUTHOR</text><text x="350" y="272" font-size="13" fill="#202d3d">book_id</text><text x="550" y="272" font-size="12" text-anchor="end" fill="#b42318" font-weight="700">PK,FK</text><text x="350" y="294" font-size="13" fill="#202d3d">author_id</text><text x="550" y="294" font-size="12" text-anchor="end" fill="#b42318" font-weight="700">PK,FK</text><rect x="660" y="230" width="220" height="70" rx="8" fill="#f8fbff" stroke="#a8bfdc"/><rect x="660" y="230" width="220" height="26" rx="8" fill="#2865a5"/><text x="670" y="248" fill="#fff" font-weight="700" font-size="14">AUTHOR</text><text x="670" y="272" font-size="13" fill="#202d3d">author_id</text><text x="870" y="272" font-size="12" text-anchor="end" fill="#b42318" font-weight="700">PK</text><text x="670" y="294" font-size="13" fill="#202d3d">author_name</text><text x="870" y="294" font-size="12" text-anchor="end" fill="#b42318" font-weight="700"></text><line x1="340" y1="69" x2="240" y2="47" stroke="#2865a5" stroke-width="1.6" marker-end="url(#ar)"/><text x="334" y="63" font-size="12" fill="#65758a" text-anchor="end">N</text><text x="246" y="41" font-size="12" fill="#65758a" text-anchor="start">1</text><line x1="660" y1="69" x2="560" y2="47" stroke="#2865a5" stroke-width="1.6" marker-end="url(#ar)"/><text x="654" y="63" font-size="12" fill="#65758a" text-anchor="end">N</text><text x="566" y="41" font-size="12" fill="#65758a" text-anchor="start">1</text><line x1="450" y1="230" x2="450" y2="168" stroke="#2865a5" stroke-width="1.6" marker-end="url(#ar)"/><text x="456" y="224" font-size="12" fill="#65758a" text-anchor="start">N</text><text x="456" y="182" font-size="12" fill="#65758a" text-anchor="start">1</text><line x1="560" y1="289" x2="660" y2="267" stroke="#2865a5" stroke-width="1.6" marker-end="url(#ar)"/><text x="566" y="283" font-size="12" fill="#65758a" text-anchor="start">N</text><text x="654" y="261" font-size="12" fill="#65758a" text-anchor="end">1</text></svg><p class="muted">箭頭由外來鍵（FK）指向被參照的主鍵（PK）；N 代表多、1 代表一。BOOK 與 AUTHOR 透過 BOOK_AUTHOR 形成多對多。</p></div>
+<div class="panel"><h2>資料表欄位說明</h2><div class="scroll"><table><thead><tr><th>資料表</th><th>欄位</th><th>鍵值／說明</th></tr></thead><tbody>
+<tr><td>BOOK</td><td>book_id</td><td>PK，書目編號</td></tr><tr><td>BOOK</td><td>title、publish_year、publisher、total_copies</td><td>書名、出版年份、出版社、館藏總冊數</td></tr><tr><td>BOOK</td><td>category_id</td><td>FK → CATEGORY.category_id</td></tr>
+<tr><td>AUTHOR</td><td>author_id、author_name</td><td>PK 作者編號、作者姓名</td></tr><tr><td>BOOK_AUTHOR</td><td>book_id、author_id</td><td>複合 PK，分別 FK → BOOK、AUTHOR</td></tr><tr><td>CATEGORY</td><td>category_id、category_name</td><td>PK 分類編號、分類名稱</td></tr><tr><td>LOAN</td><td>loan_id</td><td>PK 借閱紀錄編號</td></tr><tr><td>LOAN</td><td>book_id、borrower、borrow_date、return_date</td><td>FK 書目、借閱人、借閱日期、歸還日期（NULL 表示未歸還）</td></tr>
+</tbody></table></div></div>
+<div class="panel"><h2>範例資料瀏覽</h2><div class="tabs"><button class="active" onclick="showData('BOOK',this)">BOOK</button><button onclick="showData('AUTHOR',this)">AUTHOR</button><button onclick="showData('CATEGORY',this)">CATEGORY</button><button onclick="showData('BOOK_AUTHOR',this)">BOOK_AUTHOR</button><button onclick="showData('LOAN',this)">LOAN</button></div><div id="dataTable" class="scroll"></div></div>
+</section>
+<section id="practice" class="page hidden">
+<div class="panel"><h2>MySQL SQL 題目搜尋</h2><p class="muted">此搜尋專門找 SQL 練習題，與上方讀者使用的「圖書館書籍搜尋」分開。</p><div class="row"><div class="field" style="flex:2"><label>搜尋題目名稱或關鍵字</label><input id="qSearch" placeholder="例如：JOIN、借閱、分類統計" oninput="renderQuestions()"></div><div class="field"><label>主題</label><select id="qTopic" onchange="renderQuestions()"><option value="">全部主題</option><option>基本查詢</option><option>多表連接</option><option>彙總統計</option><option>NULL 與子查詢</option></select></div></div><div id="questionList"></div></div>
+<div class="panel"><h2>MySQL 8.0 SQL 編輯與執行</h2>
+<div class="note"><b>執行環境說明：</b>題目與範例採 MySQL 8.0 常用語法（例如反引號識別字、INNER JOIN、LEFT JOIN、GROUP_CONCAT 等）。為了讓這個純 HTML 網頁可直接展示，線上即時預覽使用 SQLite/WASM 相容執行器；它不是 MySQL Server。若作業要求「真正以 MySQL 執行」，仍需將此頁連接 MySQL 8.0 後端或在 MySQL Workbench/phpMyAdmin 執行同一份 SQL。</div><div id="activeQuestion" class="note">請先從上方選擇一道題目。</div><h3>MySQL SQL 編輯器</h3><textarea id="sqlEditor" spellcheck="false">SELECT title, publish_year FROM BOOK ORDER BY publish_year DESC;</textarea><div class="row" style="margin-top:9px"><button class="primary" onclick="executeSQL()">執行 SQL</button><button class="soft" onclick="loadCurrentSQL()">還原題目 SQL</button><button class="primary" onclick="checkAnswer()">檢查答案</button><button class="soft" onclick="clearEditor()">清空自行作答</button><button class="soft" onclick="resetData()">重設範例資料</button></div><div id="sqlStatus" class="resultmsg">MySQL 8.0 語法練習區；瀏覽器預覽引擎載入後即可執行相容查詢。</div><h3>實際查詢結果</h3><div id="actualResult" class="scroll"></div></div>
+<div class="panel"><h2>預期結果參考</h2><p class="muted">每題附有查詢目的與結果說明。預期結果供核對使用；實際執行結果請看上一區。</p><div id="expectedResult"></div><h3>MySQL 語法解說</h3><div id="explanation" class="muted">選擇題目後顯示。</div></div>
+<div class="panel"><h2>結果比較：修改 SQL 後有什麼不同？</h2><p class="muted">針對目前選擇的題目，挑一種修改方式（或自行改寫下方 SQL），並排比較原版與修改版的結果，再寫下原因。</p><div class="row"><div class="field"><label>預設修改方式</label><select id="cmpSel" onchange="cmpVariant(+this.value)"></select></div><button class="primary" onclick="runCmp()">比較執行</button></div><h3>修改版 SQL（可自行編輯）</h3><textarea id="cmpSql" spellcheck="false"></textarea><div id="cmpOut"></div><h3>我的觀察與原因</h3><textarea id="cmpNote" style="min-height:70px;font:inherit" placeholder="例如：結果由 ○ 筆變成 ○ 筆，因為……"></textarea></div>
+</section>
+<div class="footer">圖書館資料庫查詢練習｜教學用虛構資料｜MySQL 8.0 語法練習｜瀏覽器相容預覽</div>
+</main>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.3/sql-wasm.js"></script>
+<script>
+const seed=`
+PRAGMA foreign_keys=ON;
+CREATE TABLE CATEGORY(category_id INTEGER PRIMARY KEY,category_name TEXT NOT NULL);
+CREATE TABLE BOOK(book_id INTEGER PRIMARY KEY,title TEXT NOT NULL,category_id INTEGER NOT NULL,publish_year INTEGER,publisher TEXT,total_copies INTEGER NOT NULL,FOREIGN KEY(category_id) REFERENCES CATEGORY(category_id));
+CREATE TABLE AUTHOR(author_id INTEGER PRIMARY KEY,author_name TEXT NOT NULL);
+CREATE TABLE BOOK_AUTHOR(book_id INTEGER,author_id INTEGER,PRIMARY KEY(book_id,author_id),FOREIGN KEY(book_id) REFERENCES BOOK(book_id),FOREIGN KEY(author_id) REFERENCES AUTHOR(author_id));
+CREATE TABLE LOAN(loan_id INTEGER PRIMARY KEY,book_id INTEGER NOT NULL,borrower TEXT NOT NULL,borrow_date TEXT NOT NULL,return_date TEXT,FOREIGN KEY(book_id) REFERENCES BOOK(book_id));
+INSERT INTO CATEGORY VALUES
+(1,'愛情'),(2,'科學'),(3,'文學'),(4,'科技'),(5,'歷史'),
+(6,'商業'),(7,'推理懸疑'),(8,'奇幻冒險'),(9,'心理成長'),(10,'藝術設計');
+INSERT INTO BOOK VALUES
+(1,'Java 程式設計入門',4,2022,'旗標出版',4),
+(2,'Python 資料分析實戰',4,2023,'碁峰資訊',3),
+(3,'島嶼的故事',3,2020,'遠流',2),
+(4,'世界近代史',5,2019,'五南',3),
+(5,'資料庫系統概論',4,2024,'博碩文化',2),
+(6,'高效能人士的七個習慣',9,2018,'天下文化',2),
+(7,'小說選讀：春日',1,2021,'晨星',3),
+(8,'SQL 查詢技巧',4,2024,'深智數位',2),
+(9,'月光下的約定',1,2025,'春天出版',3),
+(10,'星空的秘密',2,2021,'遠流',2),
+(11,'犯罪現場的謎題',7,2023,'皇冠文化',2),
+(12,'最後一封信',7,2017,'時報出版',2),
+(13,'龍之王國',8,2022,'尖端出版',4),
+(14,'魔法森林探險',8,2020,'東立出版社',3),
+(15,'從零開始的心理學',9,2025,'商周出版',3),
+(16,'情緒整理練習',9,2024,'天下文化',2),
+(17,'宇宙簡史：探索星系',2,2018,'天下文化',3),
+(18,'世界藝術圖鑑',10,2016,'聯經出版',2),
+(19,'設計的日常美學',10,2023,'原點出版',2),
+(20,'商業思維與創新',6,2025,'遠見天下',3),
+(21,'近代台灣史',5,2015,'玉山社',2),
+(22,'微積分與生活中的數學',2,2019,'五南',3);
+INSERT INTO AUTHOR VALUES
+(1,'林怡君'),(2,'陳柏翰'),(3,'王小明'),(4,'周雅婷'),(5,'李承恩'),
+(6,'張書妍'),(7,'黃子維'),(8,'許安琪'),(9,'吳承哲'),(10,'蔡佳蓉'),
+(11,'鄭宇翔'),(12,'陳思妤');
+INSERT INTO BOOK_AUTHOR VALUES
+(1,1),(1,2),(2,1),(3,3),(4,4),(5,2),(5,5),(6,4),(7,3),(8,2),
+(9,6),(10,7),(11,8),(12,8),(13,9),(14,9),(15,10),(16,10),
+(17,7),(18,11),(19,11),(20,12),(21,4),(22,7);
+INSERT INTO LOAN VALUES
+(1,1,'王同學','2026-10-01','2026-10-10'),(2,1,'陳同學','2026-10-15',NULL),
+(3,2,'林同學','2026-10-20',NULL),(4,3,'張同學','2026-10-22','2026-11-01'),
+(5,5,'吳同學','2026-11-02',NULL),(6,5,'李同學','2026-11-03','2026-11-09'),
+(7,8,'周同學','2026-11-05',NULL),(8,6,'許同學','2026-11-06','2026-11-10'),
+(9,2,'趙同學','2026-11-07','2026-11-12'),(10,1,'黃同學','2026-11-08','2026-11-12'),
+(11,9,'林同學','2026-11-09',NULL),(12,11,'陳同學','2026-11-10','2026-11-12'),
+(13,13,'王同學','2026-11-11',NULL),(14,15,'張同學','2026-11-12',NULL),
+(15,20,'李同學','2026-11-12','2026-11-13');`;
+const questions=[
+{id:1,title:'搜尋書名包含「程式」的書籍',topic:'基本查詢',desc:'依部分書名尋找相關書籍，並顯示分類與出版年份。',sql:`SELECT b.title,c.category_name,b.publish_year
+FROM BOOK b JOIN CATEGORY c ON b.category_id=c.category_id
+WHERE b.title LIKE '%程式%'
+ORDER BY b.publish_year DESC;`,ex:'使用 LIKE 搭配 % 進行模糊比對；INNER JOIN 連接分類表，取得分類名稱。',expected:'Java 程式設計入門｜科技｜2022'},
+{id:2,title:'查詢作者林怡君的所有作品',topic:'多表連接',desc:'透過書籍與作者的對應表查出作者參與的書目。',sql:`SELECT DISTINCT b.title,a.author_name
+FROM BOOK b JOIN BOOK_AUTHOR ba ON b.book_id=ba.book_id
+JOIN AUTHOR a ON ba.author_id=a.author_id
+WHERE a.author_name='林怡君'
+ORDER BY b.title;`,ex:'BOOK_AUTHOR 是多對多關聯的橋接表。DISTINCT 可避免同一書目因關聯資料重複而重複顯示。',expected:'Java 程式設計入門、Python 資料分析實戰'},
+{id:3,title:'統計每個分類的書籍數量',topic:'彙總統計',desc:'即使分類目前沒有書，也要顯示分類名稱與 0 本。',sql:`SELECT c.category_name,COUNT(b.book_id) AS book_count
+FROM CATEGORY c LEFT JOIN BOOK b ON c.category_id=b.category_id
+GROUP BY c.category_id,c.category_name
+ORDER BY book_count DESC;`,ex:'LEFT JOIN 保留沒有對應書目的分類；COUNT(b.book_id) 不會計算 NULL。GROUP BY 依分類分組。',expected:'科技 4、科學 3、心理成長 3；愛情、歷史、推理懸疑、奇幻冒險、藝術設計各 2；文學、商業各 1'},
+{id:4,title:'查詢目前可借閱的書籍與冊數',topic:'彙總統計',desc:'館藏總冊數扣除尚未歸還的借閱冊數，列出可借數量大於 0 的書。',sql:`SELECT b.title,b.total_copies,
+ b.total_copies-COUNT(l.loan_id) AS available_copies
+FROM BOOK b LEFT JOIN LOAN l
+ ON b.book_id=l.book_id AND l.return_date IS NULL
+GROUP BY b.book_id,b.title,b.total_copies
+HAVING available_copies>0
+ORDER BY available_copies DESC;`,ex:'將未歸還條件放在 LEFT JOIN 的 ON 子句，才不會排除沒有借閱紀錄的書。HAVING 篩選彙總後的可借冊數。',expected:'顯示仍有可借冊數的書目及剩餘數量'},
+{id:5,title:'統計熱門借閱書籍排行',topic:'彙總統計',desc:'統計每本書的累計借閱紀錄，包含從未借出的書。',sql:`SELECT b.title,COUNT(l.loan_id) AS loan_count
+FROM BOOK b LEFT JOIN LOAN l ON b.book_id=l.book_id
+GROUP BY b.book_id,b.title
+ORDER BY loan_count DESC,b.title;`,ex:'LEFT JOIN 保留沒有借閱紀錄的書；COUNT(loan_id) 計算每本書的借閱筆數。',expected:'Java 程式設計入門 3 次；Python 資料分析實戰 2 次；其他書籍依紀錄排序'},
+{id:6,title:'列出目前尚未歸還的借閱紀錄',topic:'NULL 與子查詢',desc:'找出 return_date 尚未填寫的借閱紀錄，顯示借閱人與書名。',sql:`SELECT l.loan_id,b.title,l.borrower,l.borrow_date
+FROM LOAN l JOIN BOOK b ON l.book_id=b.book_id
+WHERE l.return_date IS NULL
+ORDER BY l.borrow_date;`,ex:'MySQL 中 NULL 必須使用 IS NULL 判斷，不能使用 = NULL。',expected:'列出 return_date 為 NULL 的借閱資料'}
+];
+[['查詢從未被借閱的書籍','NULL 與子查詢','找出沒有任何借閱紀錄的書。',`SELECT title FROM BOOK
+WHERE book_id NOT IN (SELECT book_id FROM LOAN)
+ORDER BY title;`,'NOT IN 搭配子查詢排除有借閱紀錄的書目（LOAN.book_id 不可為 NULL 才安全）。'],
+['列出每本書的作者清單','多表連接','一本書可能有多位作者，合併成一欄顯示。',`SELECT b.title,GROUP_CONCAT(a.author_name) AS authors
+FROM BOOK b JOIN BOOK_AUTHOR ba ON b.book_id=ba.book_id
+JOIN AUTHOR a ON a.author_id=ba.author_id
+GROUP BY b.book_id,b.title
+ORDER BY b.title;`,'GROUP_CONCAT 將同一分組的多筆文字合併為一欄。'],
+['找出借閱超過一次的借閱人','彙總統計','統計每位借閱人的借閱次數，只留下多於一次者。',`SELECT borrower,COUNT(*) AS times
+FROM LOAN GROUP BY borrower
+HAVING COUNT(*)>1
+ORDER BY times DESC,borrower;`,'WHERE 篩選分組前的資料列，HAVING 篩選分組後的彙總結果。'],
+['借閱次數高於平均的書籍','NULL 與子查詢','以子查詢計算平均每本書被借次數，再與各書比較。',`SELECT b.title,COUNT(*) AS n
+FROM BOOK b JOIN LOAN l ON b.book_id=l.book_id
+GROUP BY b.book_id,b.title
+HAVING COUNT(*)>(SELECT COUNT(*)*1.0/COUNT(DISTINCT book_id) FROM LOAN)
+ORDER BY n DESC;`,'HAVING 中可使用純量子查詢作為比較基準。'],
+['2023 年後出版且館藏至少 3 本','基本查詢','以多個條件組合篩選書目。',`SELECT title,publish_year,total_copies FROM BOOK
+WHERE publish_year>=2023 AND total_copies>=3
+ORDER BY publish_year DESC,title;`,'AND 需同時成立；比較運算子可用於數字欄位。'],
+['未歸還且借出超過 14 天的紀錄','多表連接','使用日期函式計算借出天數（結果隨今天日期變動）。',`SELECT l.borrower,b.title,DATEDIFF(CURDATE(),l.borrow_date) AS days_out
+FROM LOAN l JOIN BOOK b ON b.book_id=l.book_id
+WHERE l.return_date IS NULL
+AND DATEDIFF(CURDATE(),l.borrow_date)>14
+ORDER BY days_out DESC;`,'DATEDIFF(結束日,起始日) 回傳相差天數；預覽環境已補上 CURDATE、NOW、DATEDIFF、YEAR、MONTH、CONCAT。']
+].forEach((a,i)=>questions.push({id:7+i,title:a[0],topic:a[1],desc:a[2],sql:a[3],ex:a[4],expected:'請對照下方由參考答案即時產生的結果表。'}));
+let catalog=[
+{ id:1,title:'Java 程式設計入門',year:2022,category:'科技',publisher:'旗標出版',authors:'林怡君、陳柏翰',copies:4,borrowed:1,popularity:3 },
+{ id:2,title:'Python 資料分析實戰',year:2023,category:'科技',publisher:'碁峰資訊',authors:'林怡君',copies:3,borrowed:1,popularity:2 },
+{ id:3,title:'島嶼的故事',year:2020,category:'文學',publisher:'遠流',authors:'王小明',copies:2,borrowed:0,popularity:1 },
+{ id:4,title:'世界近代史',year:2019,category:'歷史',publisher:'五南',authors:'周雅婷',copies:3,borrowed:0,popularity:0 },
+{ id:5,title:'資料庫系統概論',year:2024,category:'科技',publisher:'博碩文化',authors:'陳柏翰、李承恩',copies:2,borrowed:1,popularity:2 },
+{ id:6,title:'高效能人士的七個習慣',year:2018,category:'心理成長',publisher:'天下文化',authors:'周雅婷',copies:2,borrowed:0,popularity:1 },
+{ id:7,title:'小說選讀：春日',year:2021,category:'愛情',publisher:'晨星',authors:'王小明',copies:3,borrowed:0,popularity:0 },
+{ id:8,title:'SQL 查詢技巧',year:2024,category:'科技',publisher:'深智數位',authors:'陳柏翰',copies:2,borrowed:1,popularity:1 },
+{ id:9,title:'月光下的約定',year:2025,category:'愛情',publisher:'春天出版',authors:'張書妍',copies:3,borrowed:1,popularity:2 },
+{ id:10,title:'星空的秘密',year:2021,category:'科學',publisher:'遠流',authors:'黃子維',copies:2,borrowed:0,popularity:1 },
+{ id:11,title:'犯罪現場的謎題',year:2023,category:'推理懸疑',publisher:'皇冠文化',authors:'許安琪',copies:2,borrowed:0,popularity:2 },
+{ id:12,title:'最後一封信',year:2017,category:'推理懸疑',publisher:'時報出版',authors:'許安琪',copies:2,borrowed:0,popularity:0 },
+{ id:13,title:'龍之王國',year:2022,category:'奇幻冒險',publisher:'尖端出版',authors:'吳承哲',copies:4,borrowed:1,popularity:1 },
+{ id:14,title:'魔法森林探險',year:2020,category:'奇幻冒險',publisher:'東立出版社',authors:'吳承哲',copies:3,borrowed:0,popularity:0 },
+{ id:15,title:'從零開始的心理學',year:2025,category:'心理成長',publisher:'商周出版',authors:'蔡佳蓉',copies:3,borrowed:1,popularity:2 },
+{ id:16,title:'情緒整理練習',year:2024,category:'心理成長',publisher:'天下文化',authors:'蔡佳蓉',copies:2,borrowed:0,popularity:1 },
+{ id:17,title:'宇宙簡史：探索星系',year:2018,category:'科學',publisher:'天下文化',authors:'黃子維',copies:3,borrowed:0,popularity:1 },
+{ id:18,title:'世界藝術圖鑑',year:2016,category:'藝術設計',publisher:'聯經出版',authors:'鄭宇翔',copies:2,borrowed:0,popularity:0 },
+{ id:19,title:'設計的日常美學',year:2023,category:'藝術設計',publisher:'原點出版',authors:'鄭宇翔',copies:2,borrowed:0,popularity:1 },
+{ id:20,title:'商業思維與創新',year:2025,category:'商業',publisher:'遠見天下',authors:'陳思妤',copies:3,borrowed:0,popularity:1 },
+{ id:21,title:'近代台灣史',year:2015,category:'歷史',publisher:'玉山社',authors:'周雅婷',copies:2,borrowed:0,popularity:0 },
+{ id:22,title:'微積分與生活中的數學',year:2019,category:'科學',publisher:'五南',authors:'黃子維',copies:3,borrowed:0,popularity:0 }
+];
+const categories=['愛情','科學','文學','科技','歷史','商業','推理懸疑','奇幻冒險','心理成長','藝術設計'];
+const years=[2025,2024,2023,2022,2021,2020,2019,2018,2017,2016,2015];
+let SQL,db,current=questions[0];
+const $=id=>document.getElementById(id);
+function esc(x){return String(x??'NULL').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function status(msg,type=''){ $('sqlStatus').className='resultmsg '+type;$('sqlStatus').textContent=msg;}
+function runQuery(sql){return db.exec(sql);}
+function resetData(){if(!SQL)return;if(db)db.close();db=new SQL.Database();db.run(seed);shim();refreshAll();showExpected();status('範例資料已重設。','ok');}
+function renderTable(target,rows,cols){if(!rows.length){$(target).innerHTML='<p class="muted">沒有符合的資料。</p>';return;}$(target).innerHTML='<table><thead><tr>'+cols.map(c=>'<th>'+esc(c)+'</th>').join('')+'</tr></thead><tbody>'+rows.map(r=>'<tr>'+r.map(v=>'<td>'+esc(v)+'</td>').join('')+'</tr>').join('')+'</tbody></table>';}
+function searchBooks(){
+let key=$('keyword').value.trim().toLowerCase(),cat=$('catFilter').value,year=$('yearFilter').value,state=$('statusFilter').value,sort=$('sortFilter').value;
+let rows=catalog.filter(r=>(!key||[r.title,r.authors,r.publisher].some(v=>String(v||'').toLowerCase().includes(key)))&&(!cat||r.category===cat)&&(!year||String(r.year)===year)&&(!state||(state==='available'?r.copies-r.borrowed>0:r.copies-r.borrowed<=0)));
+rows.sort((a,b)=>sort==='yearDesc'?b.year-a.year:sort==='yearAsc'?a.year-b.year:sort==='popular'?b.popularity-a.popularity:a.title.localeCompare(b.title,'zh-Hant'));
+$('searchSummary').textContent=`找到 ${rows.length} 筆書目（共 ${catalog.length} 筆；關鍵字比對書名、作者、出版社）。`;
+$('bookResults').innerHTML=rows.map(r=>{let available=r.copies-r.borrowed;return `<article class="book"><h3>${esc(r.title)}</h3><div class="muted">${esc(r.authors)}</div><p>分類：${esc(r.category)}｜出版：${r.year}</p><p>出版社：${esc(r.publisher)}</p><p>館藏 ${r.copies} 本｜借出 ${r.borrowed} 本｜可借 ${available} 本</p><span class="tag ${available<=0?'no':''}">${available>0?'可借閱':'全部借出'}</span><span class="muted">　累計借閱 ${r.popularity} 次</span></article>`}).join('')||'<p class="muted">找不到符合條件的書籍，請調整搜尋條件。</p>';
+}
+function clearFilters(){$('keyword').value='';$('catFilter').value='';$('yearFilter').value='';$('statusFilter').value='';$('sortFilter').value='title';searchBooks();}
+function renderQuestions(){let k=$('qSearch').value.toLowerCase(),t=$('qTopic').value;let list=questions.filter(q=>(!t||q.topic===t)&&(!k||(q.title+q.desc+q.topic+q.sql).toLowerCase().includes(k)));$('questionList').innerHTML=list.map(q=>`<div class="qitem"><div class="muted">第 ${q.id} 題 · ${q.topic}</div><h3>${q.title}</h3><p class="muted">${q.desc}</p><button class="soft" onclick="selectQuestion(${q.id})">載入這題</button></div>`).join('')||'<p class="muted">沒有符合的題目。</p>';}
+function selectQuestion(id){current=questions.find(q=>q.id===id);loadCurrentSQL();$('activeQuestion').innerHTML=`<b>第 ${current.id} 題｜${current.title}</b><br>${current.desc}`;showExpected();$('explanation').textContent=current.ex;renderCmp();status('已載入題目 SQL，修改後可直接執行。');}
+function loadCurrentSQL(){$('sqlEditor').value=current.sql;}
+function executeSQL(){if(!db){status('資料庫載入中，請稍候。','err');return;}try{let res=runQuery($('sqlEditor').value);if(!res.length){$('actualResult').innerHTML='<p class="muted">指令已執行，沒有回傳資料表。</p>';status('SQL 執行成功。','ok');refreshAll();showExpected();return;}$('actualResult').innerHTML=res.map(r=>tbl(r.columns,r.values)).join('<hr>');status(`執行成功，共 ${res.length} 個結果集，${res.reduce((n,r)=>n+r.values.length,0)} 筆資料。`,'ok');refreshAll();showExpected();}catch(e){$('actualResult').innerHTML='';status('SQL 錯誤：'+e.message,'err');}}
+function showData(table,btn){if(!db){status('SQL 資料庫正在載入，請稍候。');return;}document.querySelectorAll('#schema .tabs button').forEach(b=>b.classList.remove('active'));btn.classList.add('active');let r=runQuery('SELECT * FROM '+table);renderTable('dataTable',r[0].values,r[0].columns);}
+let lnF='all';const today=()=>new Date().toISOString().slice(0,10);
+function q(sql,p){let t=db.prepare(sql,p),r=[];while(t.step())r.push(t.getAsObject());t.free();return r;}
+function tbl(c,r){return r.length?'<table><thead><tr>'+c.map(x=>'<th>'+esc(x)+'</th>').join('')+'</tr></thead><tbody>'+r.map(a=>'<tr>'+a.map(v=>'<td>'+esc(v)+'</td>').join('')+'</tr>').join('')+'</tbody></table>':'<p class="muted">沒有符合的資料。</p>';}
+function shim(){const d=x=>new Date(String(x).slice(0,10)+'T00:00:00Z'),n=x=>x==null,f=(k,g)=>db.create_function(k,g);
+f('CURDATE',()=>today());f('NOW',()=>today()+' '+new Date().toTimeString().slice(0,8));
+f('YEAR',x=>n(x)?null:+String(x).slice(0,4));f('MONTH',x=>n(x)?null:+String(x).slice(5,7));
+f('DATEDIFF',(a,b)=>n(a)||n(b)?null:Math.round((d(a)-d(b))/864e5));
+f('CONCAT',(a,b)=>n(a)||n(b)?null:''+a+b);f('CONCAT',(a,b,c)=>n(a)||n(b)||n(c)?null:''+a+b+c);f('CONCAT',(a,b,c,e)=>n(a)||n(b)||n(c)||n(e)?null:''+a+b+c+e);}
+function loadCatalog(){catalog=q(`SELECT b.book_id id,b.title,b.publish_year year,c.category_name category,b.publisher,b.total_copies copies,
+(SELECT GROUP_CONCAT(a.author_name,'、') FROM BOOK_AUTHOR ba JOIN AUTHOR a ON a.author_id=ba.author_id WHERE ba.book_id=b.book_id) authors,
+(SELECT COUNT(*) FROM LOAN l WHERE l.book_id=b.book_id AND l.return_date IS NULL) borrowed,
+(SELECT COUNT(*) FROM LOAN l WHERE l.book_id=b.book_id) popularity
+FROM BOOK b JOIN CATEGORY c ON c.category_id=b.category_id`);}
+function stats(){const n=t=>q('SELECT COUNT(*) n FROM '+t)[0].n;$('bookCount').textContent=n('BOOK');$('authorCount').textContent=n('AUTHOR');$('categoryCount').textContent=n('CATEGORY');$('loanCount').textContent=n('LOAN');}
+function refreshAll(){if(!db)return;try{loadCatalog();stats();searchBooks();renderLoans();}catch(e){}}
+function lnMsg(m,t){$('lnMsg').className='resultmsg '+t;$('lnMsg').textContent=m;}
+function borrowBook(){if(!db)return lnMsg('資料庫尚未載入。','err');let nm=$('lnName').value.trim(),b=+$('lnBook').value,c=catalog.find(x=>x.id===b);
+if(!nm)return lnMsg('請輸入借閱人。','err');if(!c||c.copies-c.borrowed<=0)return lnMsg('此書目前沒有可借冊數。','err');
+db.run('INSERT INTO LOAN(book_id,borrower,borrow_date) VALUES(?,?,?)',[b,nm,today()]);refreshAll();lnMsg(`已借出《${c.title}》給 ${nm}。`,'ok');$('lnName').value='';}
+function returnBook(id){db.run('UPDATE LOAN SET return_date=? WHERE loan_id=? AND return_date IS NULL',[today(),id]);refreshAll();lnMsg('已辦理還書。','ok');}
+function renderLoans(){if(!db)return;let v=$('lnBook').value;
+$('lnBook').innerHTML=catalog.map(c=>`<option value="${c.id}">${esc(c.title)}（可借 ${c.copies-c.borrowed}）</option>`).join('');if(v)$('lnBook').value=v;
+let w=lnF==='open'?'WHERE l.return_date IS NULL':lnF==='done'?'WHERE l.return_date IS NOT NULL':'';
+let r=q(`SELECT l.loan_id,b.title,l.borrower,l.borrow_date,l.return_date FROM LOAN l JOIN BOOK b ON b.book_id=l.book_id ${w} ORDER BY l.loan_id DESC`);
+$('lnTable').innerHTML=r.length?'<table><thead><tr><th>編號</th><th>書名</th><th>借閱人</th><th>借閱日</th><th>歸還日</th><th>操作</th></tr></thead><tbody>'+r.map(x=>`<tr><td>${x.loan_id}</td><td>${esc(x.title)}</td><td>${esc(x.borrower)}</td><td>${esc(x.borrow_date)}</td><td>${x.return_date?esc(x.return_date):'<span class="tag no">未歸還</span>'}</td><td>${x.return_date?'':`<button class="soft" onclick="returnBook(${x.loan_id})">還書</button>`}</td></tr>`).join('')+'</tbody></table>':'<p class="muted">沒有符合的紀錄。</p>';}
+function showExpected(){let h='<p>'+esc(current.expected)+'</p>';if(db){try{let r=runQuery(current.sql)[0];if(r)h+='<h3>參考答案執行結果（即時）</h3><div class="scroll">'+tbl(r.columns,r.values)+'</div>';}catch(e){}}$('expectedResult').innerHTML=h;}
+function clearEditor(){$('sqlEditor').value='-- 請在此撰寫 SQL\n';$('sqlEditor').focus();}
+function checkAnswer(){if(!db)return status('資料庫載入中，請稍候。','err');try{const norm=r=>JSON.stringify((r[0]?r[0].values:[]).map(x=>JSON.stringify(x)).sort());
+let ok=norm(runQuery($('sqlEditor').value))===norm(runQuery(current.sql));status(ok?'✔ 結果與參考答案一致（比對資料列內容，不要求欄位別名與排序相同）。':'✘ 結果與參考答案不同，請檢查條件、欄位或 JOIN。',ok?'ok':'err');}catch(e){status('SQL 錯誤：'+e.message,'err');}}
+const variants={
+1:[{n:'LIKE 只比對書名開頭',p:[["'%程式%'","'程式%'"]],w:'% 放在前後代表「任意位置包含」；拿掉前面的 % 後，書名必須以「程式」開頭。《Java 程式設計入門》是以 Java 開頭，所以被排除，結果變成 0 筆。'}],
+2:[{n:'改查作者陳柏翰',p:[["'林怡君'","'陳柏翰'"]],w:'WHERE 條件換了作者，結果換成陳柏翰參與的書。BOOK_AUTHOR 讓一本書可對應多位作者，所以《Java 程式設計入門》同時出現在兩位作者的結果裡。'}],
+4:[{n:'未歸還條件從 ON 移到 WHERE',p:[["ON b.book_id=l.book_id AND l.return_date IS NULL","ON b.book_id=l.book_id\nWHERE l.return_date IS NULL"]],w:'條件放在 ON 時，沒有未歸還紀錄的書仍以 NULL 列保留，可借冊數等於總冊數；移到 WHERE 後，這些 NULL 列被濾掉，完全沒人借出的書整本消失，結果變少。'}],
+5:[{n:'LEFT JOIN 改 INNER JOIN',p:[["LEFT JOIN","INNER JOIN"]],w:'LEFT JOIN 會保留左表沒有對應借閱紀錄的書（次數為 0）；INNER JOIN 只保留兩表都有資料的書，從未被借過的書就消失了。'}],
+6:[{n:'IS NULL 改 IS NOT NULL',p:[["IS NULL","IS NOT NULL"]],w:'兩個條件互為相反，結果由「未歸還」變成「已歸還」的紀錄，兩者筆數加起來等於 LOAN 總筆數。'},{n:'IS NULL 誤寫成 = NULL',p:[["IS NULL","= NULL"]],w:'NULL 代表未知，任何值與 NULL 用 = 比較結果都是 UNKNOWN 而非真，所以一筆都查不到（0 筆）。判斷 NULL 必須用 IS NULL。'}],
+7:[{n:'NOT IN 改 IN',p:[["NOT IN","IN"]],w:'NOT IN 找「沒有借閱紀錄」的書，IN 則找「有借閱紀錄」的書，兩者互補，筆數相加等於 BOOK 總筆數。'}]};
+const applyV=v=>v.p.reduce((t,[a,b])=>t.replace(a,b),current.sql);
+function cmpVariant(i){let v=(variants[current.id]||[])[i];$('cmpSql').value=v?applyV(v):current.sql;}
+function renderCmp(){$('cmpSel').innerHTML=(variants[current.id]||[]).map((v,i)=>`<option value="${i}">${esc(v.n)}</option>`).join('')||'<option value="">（此題無預設，請直接修改下方 SQL）</option>';cmpVariant(0);$('cmpOut').innerHTML='';$('cmpNote').value='';}
+function runCmp(){if(!db)return;const o=$('cmpOut'),E={columns:[],values:[]};try{let a=runQuery(current.sql)[0]||E,sql=$('cmpSql').value,b=runQuery(sql)[0]||E;
+const k=r=>r.values.map(x=>x.join('｜')),ka=k(a),kb=k(b),gone=ka.filter(x=>!kb.includes(x)),neu=kb.filter(x=>!ka.includes(x)),v=(variants[current.id]||[])[+$('cmpSel').value],pre=v&&sql===applyV(v),L=(t,l)=>l.length?`<br>${t}：${esc(l.slice(0,6).join('、'))}${l.length>6?'…':''}`:'';
+o.innerHTML=`<div class="cmpgrid"><div><h3>原版（${a.values.length} 筆）</h3><div class="sqlbox">${esc(current.sql)}</div><div class="scroll">${tbl(a.columns,a.values)}</div></div><div><h3>修改版（${b.values.length} 筆）</h3><div class="sqlbox">${esc(sql)}</div><div class="scroll">${tbl(b.columns,b.values)}</div></div></div><div class="note"><b>結果變化：</b>筆數 ${a.values.length} → ${b.values.length}；消失 ${gone.length} 筆、新增 ${neu.length} 筆。${L('消失',gone)}${L('新增',neu)}<br><b>原因：</b>${pre?esc(v.w):'這是你自行修改的 SQL，請在下方「我的觀察與原因」寫出為什麼結果會這樣改變。'}</div>`;}catch(e){o.innerHTML='<div class="resultmsg err">修改版 SQL 錯誤：'+esc(e.message)+'</div>';}}
+function init(){document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{document.querySelectorAll('nav button').forEach(x=>x.classList.remove('active'));b.classList.add('active');document.querySelectorAll('.page').forEach(x=>x.classList.add('hidden'));$(b.dataset.page).classList.remove('hidden');});
+$('catFilter').innerHTML='<option value="">全部分類</option>'+categories.map(v=>`<option value="${esc(v)}">${esc(v)}</option>`).join('');
+$('yearFilter').innerHTML='<option value="">全部年份</option>'+years.map(v=>`<option value="${v}">${v} 年</option>`).join('');
+searchBooks();renderQuestions();selectQuestion(1);$('sqlEditor').addEventListener('keydown',e=>{if(e.ctrlKey&&e.key==='Enter')executeSQL()});$('lnTabs').onclick=e=>{if(e.target.dataset.f){lnF=e.target.dataset.f;[...$('lnTabs').children].forEach(b=>b.classList.toggle('active',b===e.target));renderLoans();}};
+if(typeof initSqlJs==='function'){
+initSqlJs({locateFile:f=>'https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.3/'+f}).then(lib=>{SQL=lib;resetData();showData('BOOK',document.querySelector('.tabs button'));}).catch(e=>status('書籍搜尋已可使用；SQL 練習引擎載入失敗，請確認網路連線。','err'));
+}else{status('書籍搜尋已可使用；SQL 編輯器需連線載入預覽引擎。','err');}
+}
+init();
+</script></body></html>
